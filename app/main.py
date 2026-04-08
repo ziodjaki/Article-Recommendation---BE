@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import Depends, FastAPI, Request
 from fastapi.exceptions import RequestValidationError
@@ -21,14 +22,29 @@ journals_data: list[dict] = []
 recommender_service: RecommenderService | None = None
 
 
+def load_journals_data(
+    source_path: Path | None = None,
+    output_path: Path | None = None,
+) -> list[dict]:
+    source_path = source_path or settings.journal_markdown_path
+    output_path = output_path or settings.journals_json_path
+
+    if source_path.exists():
+        return parse_file_to_json(source_path=source_path, output_path=output_path)
+
+    if output_path.exists():
+        return json.loads(output_path.read_text(encoding="utf-8"))
+
+    raise FileNotFoundError(
+        f"Journal source not found at '{source_path}' and fallback cache '{output_path}' is missing."
+    )
+
+
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     global journals_data, recommender_service
 
-    journals_data = parse_file_to_json(
-        source_path=settings.journal_markdown_path,
-        output_path=settings.journals_json_path,
-    )
+    journals_data = load_journals_data()
 
     embedding_service = EmbeddingService(settings=settings)
     embedding_service.ensure_journal_embeddings(
