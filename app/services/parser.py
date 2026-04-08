@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import errno
 import json
 import re
 import unicodedata
@@ -127,6 +128,12 @@ def parse_file_to_json(source_path: Path, output_path: Path) -> list[dict]:
     markdown_text = source_path.read_text(encoding="utf-8")
     journals = parse_journal_markdown(markdown_text)
 
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(json.dumps(journals, ensure_ascii=False, indent=2), encoding="utf-8")
+    try:
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(json.dumps(journals, ensure_ascii=False, indent=2), encoding="utf-8")
+    except OSError as exc:
+        # Serverless platforms may mount code directories as read-only.
+        if exc.errno != errno.EROFS:
+            raise
+
     return journals
