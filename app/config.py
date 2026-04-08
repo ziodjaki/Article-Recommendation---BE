@@ -25,6 +25,10 @@ def _parse_origins(value: str) -> tuple[str, ...]:
     return tuple(origin.rstrip("/") for origin in _parse_csv(value))
 
 
+DEFAULT_ALLOWED_ORIGINS = "http://localhost:3000,https://article-recommendation-fe.vercel.app"
+DEFAULT_ALLOWED_HOSTS = "localhost,127.0.0.1,testserver,article-recommendation-be.vercel.app"
+
+
 @dataclass(frozen=True)
 class Settings:
     gemini_api_key: str = os.getenv("GEMINI_API_KEY", "")
@@ -33,8 +37,8 @@ class Settings:
     top_k: int = int(os.getenv("TOP_K", "3"))
     min_confidence: float = float(os.getenv("MIN_CONFIDENCE", "0.35"))
     journal_source_path: str = os.getenv("JOURNAL_SOURCE_PATH", "../jurnal.md")
-    allowed_origins: tuple[str, ...] = _parse_origins(os.getenv("ALLOWED_ORIGINS", "http://localhost:3000"))
-    allowed_hosts: tuple[str, ...] = _parse_csv(os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1,testserver"))
+    allowed_origins: tuple[str, ...] = _parse_origins(os.getenv("ALLOWED_ORIGINS", DEFAULT_ALLOWED_ORIGINS))
+    allowed_hosts: tuple[str, ...] = _parse_csv(os.getenv("ALLOWED_HOSTS", DEFAULT_ALLOWED_HOSTS))
     enforce_api_key: bool = _parse_bool(os.getenv("ENFORCE_API_KEY", "false"), default=False)
     api_keys: tuple[str, ...] = _parse_csv(os.getenv("API_KEYS", ""))
     rate_limit_requests: int = int(os.getenv("RATE_LIMIT_REQUESTS", "30"))
