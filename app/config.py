@@ -20,6 +20,11 @@ def _parse_csv(value: str) -> tuple[str, ...]:
     return tuple(part.strip() for part in value.split(",") if part.strip())
 
 
+def _parse_origins(value: str) -> tuple[str, ...]:
+    # CORS origin matching is exact; remove trailing slash to match Origin header.
+    return tuple(origin.rstrip("/") for origin in _parse_csv(value))
+
+
 @dataclass(frozen=True)
 class Settings:
     gemini_api_key: str = os.getenv("GEMINI_API_KEY", "")
@@ -28,7 +33,7 @@ class Settings:
     top_k: int = int(os.getenv("TOP_K", "3"))
     min_confidence: float = float(os.getenv("MIN_CONFIDENCE", "0.35"))
     journal_source_path: str = os.getenv("JOURNAL_SOURCE_PATH", "../jurnal.md")
-    allowed_origins: tuple[str, ...] = _parse_csv(os.getenv("ALLOWED_ORIGINS", "http://localhost:3000"))
+    allowed_origins: tuple[str, ...] = _parse_origins(os.getenv("ALLOWED_ORIGINS", "http://localhost:3000"))
     allowed_hosts: tuple[str, ...] = _parse_csv(os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1,testserver"))
     enforce_api_key: bool = _parse_bool(os.getenv("ENFORCE_API_KEY", "false"), default=False)
     api_keys: tuple[str, ...] = _parse_csv(os.getenv("API_KEYS", ""))
