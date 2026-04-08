@@ -69,3 +69,18 @@ def test_recommend_rejects_non_json_content_type():
         )
 
     assert response.status_code == 415
+
+
+def test_cors_preflight_recommend_allows_frontend_origin():
+    with TestClient(app) as client:
+        response = client.options(
+            "/recommend",
+            headers={
+                "Origin": "https://article-recommendation-fe.vercel.app",
+                "Access-Control-Request-Method": "POST",
+                "Access-Control-Request-Headers": "content-type,x-api-key",
+            },
+        )
+
+    assert response.status_code == 200
+    assert response.headers.get("access-control-allow-origin") == "https://article-recommendation-fe.vercel.app"

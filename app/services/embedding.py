@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import errno
 import hashlib
 import json
 import math
@@ -117,8 +118,14 @@ class EmbeddingService:
             ],
         }
 
-        cache_path.parent.mkdir(parents=True, exist_ok=True)
-        cache_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+        try:
+            cache_path.parent.mkdir(parents=True, exist_ok=True)
+            cache_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+        except OSError as exc:
+            # Serverless platforms may mount app code as read-only.
+            if exc.errno != errno.EROFS:
+                raise
+
         return mapping
 
 

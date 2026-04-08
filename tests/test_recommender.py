@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import errno
 from pathlib import Path
 
 from app.services.embedding import EmbeddingService
@@ -43,6 +44,20 @@ def test_embedding_cache_created(tmp_path: Path):
 
     assert len(result) == len(journals)
     assert (tmp_path / "embeddings.json").exists()
+
+
+def test_embedding_cache_read_only_filesystem_still_returns_vectors(monkeypatch, tmp_path: Path):
+    journals, settings = _load_journals(tmp_path)
+    embedding_service = EmbeddingService(settings=settings)
+
+    def _raise_ero_fs(*args, **kwargs):
+        raise OSError(errno.EROFS, "Read-only file system")
+
+    monkeypatch.setattr(Path, "write_text", _raise_ero_fs)
+
+    result = embedding_service.ensure_journal_embeddings(journals=journals, cache_path=tmp_path / "embeddings.json")
+
+    assert len(result) == len(journals)
 
 
 def test_ranking_sorted_descending(tmp_path: Path):
