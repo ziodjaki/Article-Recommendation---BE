@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+pydantic
+python-dotenv
+numpy
+scikit-learn
+google-genai
+markdown-it-py
+pytest
