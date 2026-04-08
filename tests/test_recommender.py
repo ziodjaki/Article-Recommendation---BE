@@ -78,3 +78,4 @@ def test_ranking_sorted_descending(tmp_path: Path):
     assert len(recommendations) <= 3
     scores = [item["score"] for item in recommendations]
     assert scores == sorted(scores, reverse=True)
+    assert all(0.0 <= score <= 1.0 for score in scores)

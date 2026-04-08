@@ -20,6 +20,11 @@ class RecommenderService:
             return "medium"
         return "low"
 
+    def _normalize_similarity(self, value: float) -> float:
+        # Cosine similarity ranges from -1..1; convert it into 0..1 for user-facing score.
+        normalized = (float(value) + 1.0) / 2.0
+        return max(0.0, min(1.0, normalized))
+
     def recommend(self, title: str, abstract: str, journals: list[dict]) -> list[dict]:
         if not journals:
             return []
@@ -42,7 +47,9 @@ class RecommenderService:
 
             score_title = cosine_similarity(title_vec, vector)
             score_abstract = cosine_similarity(abstract_vec, vector)
-            final_score = (0.35 * score_title) + (0.65 * score_abstract)
+            normalized_title = self._normalize_similarity(score_title)
+            normalized_abstract = self._normalize_similarity(score_abstract)
+            final_score = (0.35 * normalized_title) + (0.65 * normalized_abstract)
 
             scored.append(
                 {
