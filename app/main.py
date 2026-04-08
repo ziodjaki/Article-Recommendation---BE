@@ -14,7 +14,7 @@ from app.config import settings
 from app.schemas import RecommendRequest, RecommendResponse
 from app.security import SecurityMiddleware, require_api_key
 from app.services.embedding import EmbeddingService
-from app.services.parser import parse_file_to_json
+from app.services.parser import parse_file_to_json, parse_journal_markdown
 from app.services.reasoner import ReasonerService
 from app.services.recommender import RecommenderService
 
@@ -30,7 +30,11 @@ def load_journals_data(
     output_path = output_path or settings.journals_json_path
 
     if source_path.exists():
-        return parse_file_to_json(source_path=source_path, output_path=output_path)
+        try:
+            return parse_file_to_json(source_path=source_path, output_path=output_path)
+        except OSError:
+            markdown_text = source_path.read_text(encoding="utf-8")
+            return parse_journal_markdown(markdown_text)
 
     if output_path.exists():
         return json.loads(output_path.read_text(encoding="utf-8"))
